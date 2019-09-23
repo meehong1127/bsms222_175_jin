@@ -64,6 +64,11 @@ d3%>%
 ```
 
 
+```{r}
+d3%>%
+  group_by(chrom)%>%
+  filter(n==max(n))
+```
 
 
 
