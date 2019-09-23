@@ -46,7 +46,7 @@ d3%>%
 ```{r}
 calc <- function(dat){
   x <- quantile(dat$n, c(0.25, 0.5, 0.75,1))
-  data_frame(twentyfive = x[1], median = x[2], seventyfive = x[3], maximum=x[4])
+  data_frame(q25=x[1], median = x[2], q75 = x[3], maximum=x[4])
 }
 ```
 
