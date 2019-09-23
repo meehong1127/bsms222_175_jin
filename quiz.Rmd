@@ -1,0 +1,74 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(readr)
+```
+
+
+1. calculate average numbers of exons per gene in X, Y chromosome.
+```{r}
+d1<-d%>%
+  filter(feature_type=="exon"&chrom%in%c("chrX","chrY"))
+```
+
+```{r}
+d1$gene_name <- as.character(do.call(rbind.data.frame, 
+                                                    strsplit(d1$info, 'gene_name\\s+"'))[[2]])
+
+d1$gene_name <- as.character(do.call(rbind.data.frame, 
+                                                    strsplit( d1$gene_name, '\\"'))[[1]])
+```
+
+```{r}
+d3<-d1%>%
+  group_by(gene_name, chrom)%>%
+  count()
+d3
+```
+
+```{r}
+ave<-function(dat){
+  x<-sum(dat$n)/length(dat$gene_name)
+  data_frame(x)
+}
+```
+
+```{r}
+d3%>%
+  group_by(chrom)%>%
+  do(ave(.))
+```
+2. Use quantile to calculate the average, median, 25% and 75% values of exons to find out which one has more exons in it.
+```{r}
+calc <- function(dat){
+  x <- quantile(dat$n, c(0.25, 0.5, 0.75,1))
+  data_frame(twentyfive = x[1], median = x[2], seventyfive = x[3], maximum=x[4])
+}
+```
+
+
+```{r}
+d3%>%
+  group_by(chrom)%>%
+  do(calc(.))
+```
+
+3. Find out the gene which has the maximum number of exons.
+```{r}
+d3%>%
+  filter(n%in%c(334,564))
+```
+
+
+
+
+
+
+
+
+
+
