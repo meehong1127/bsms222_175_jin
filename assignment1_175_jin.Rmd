@@ -8,7 +8,7 @@ output: html_notebook
 
 There are three data frame introduced in this assignment which are "**e**", "**s**", "**g**". Each stands for "RNA-seq expression", "gene information" and "sample information". 
 
-To create data frame "e", tissue processing and dissection is needed firstly([5](file:///Users/meehong/Downloads/Transcriptome_Profiling.pdf)). RNA extraction, mRNA library  preparation and sequencing, RNA sequencing alignment, Reads processing and quality filtering and Measuring Expression are the following steps to construct the data.([1](file:///Users/meehong/Downloads/Transcriptome_Profiling.pdf)) 
+To create data frame "e", tissue processing and dissection is needed firstly([5](file:///Users/meehong/Downloads/Transcriptome_Profiling.pdf)). RNA extraction, mRNA library  preparation and sequencing, RNA sequencing alignment, Reads processing and quality filtering and Measuring Expression are the following steps to construct the data.([5](file:///Users/meehong/Downloads/Transcriptome_Profiling.pdf)) 
 
 BrainSpan which is an atlas of the developing human brain is the referencen material of Data frame "g".
 
