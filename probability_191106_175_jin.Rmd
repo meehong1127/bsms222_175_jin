@@ -212,8 +212,8 @@ Pr(Z≤(a−m)/s)
 So, no matter the units, the probability of  X≤a  is the same as the probability of a standard normal variable being less than  (a−m)/s . If ```mu``` is the average and ```sigma``` the standard error, which of the following R code would give us the right answer in every situation:
 
 a. ```mean(X<=a)```
-b. ```pnorm((a - m)/s)```
-**c. ```pnorm((a - m)/s, m, s)```**
+**b. ```pnorm((a - m)/s)```**
+c. ```pnorm((a - m)/s, m, s)```
 d. ```pnorm(a)```
 
 7. Imagine the distribution of male adults is approximately normal with an expected value of 69 and a standard deviation of 3. How tall is the male in the 99th percentile? Hint: use ```qnorm```.
