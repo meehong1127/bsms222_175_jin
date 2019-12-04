@@ -221,14 +221,15 @@ x <- heights %>% filter(sex == "Male") %>%
   pull(height)
 ```
 
-1. Mathematically speaking, ```x``` is our population. Using the urn analogy, we have an urn with the values of ```x``` in it. What are the average and standard deviation of our population?
+1.Mathematically speaking, ```x``` is our population. Using the urn analogy, we have an urn with the values of ```x``` in it. What are the average and standard deviation of our population?
 ```{r}
 mean(x)
 sd(x)
 ```
 
-2. Call the population average computed above $μ$ and the standard deviation $σ$. Now take a sample of size 50, with replacement, and construct an estimate for $μ$ and $σ$.
+2.Call the population average computed above $μ$ and the standard deviation $σ$. Now take a sample of size 50, with replacement, and construct an estimate for $μ$ and $σ$.
 ```{r}
+set.seed(1)
 N<-50
 X<-sample(x, N, replace = TRUE)
 mu_hat<-mean(X)
@@ -237,26 +238,26 @@ mu_hat
 sigma_hat
 ```
 
-3. What does the theory tell us about the sample average $\bar{X}$ and how it is related to $μ$?
+3.What does the theory tell us about the sample average $\bar{X}$ and how it is related to $μ$?
 
-a. It is practically identical to $μ$.
+a. It is practically identical to $μ$.    
 **b. It is a random variable with expected value $μ$ and standard error $\sigma/\sqrt{N}$.**
 c. It is a random variable with expected value $μ$ and standard error $σ$.
 d. Contains no information.
 
-4. So how is this useful? We are going to use an oversimplified yet illustrative example. Suppose we want to know the average height of our male students, but we only get to measure 50 of the 708. We will use $\bar{X}$ as our estimate. We know from the answer to exercise 3 that the standard estimate of our error $\bar{X}-\mu$ is $\sigma/\sqrt{N}$. We want to compute this, but we don’t know $σ$. Based on what is described in this section, show your estimate of $σ$.
+4.So how is this useful? We are going to use an oversimplified yet illustrative example. Suppose we want to know the average height of our male students, but we only get to measure 50 of the 708. We will use $\bar{X}$ as our estimate. We know from the answer to exercise 3 that the standard estimate of our error $\bar{X}-\mu$ is $\sigma/\sqrt{N}$. We want to compute this, but we don’t know $σ$. Based on what is described in this section, show your estimate of $σ$.
 ```{r}
 sd(X)
 ```
 
-5. Now that we have an estimate of $σ$, let’s call our estimate $s$. Construct a 95% confidence interval for $μ$.
+5.Now that we have an estimate of $σ$, let’s call our estimate $s$. Construct a 95% confidence interval for $μ$.
 ```{r}
 s<-sd(X)
 se_hat<-s/sqrt(N)
 c( mu_hat- 1.96 * se_hat, mu_hat + 1.96 * se_hat)
 ```
 
-6. Now run a Monte Carlo simulation in which you compute 10,000 confidence intervals as you have just done. What proportion of these intervals include $μ$?
+6.Now run a Monte Carlo simulation in which you compute 10,000 confidence intervals as you have just done. What proportion of these intervals include $μ$?
 ```{r}
 B<-10000
 a<-replicate(B, {
@@ -271,7 +272,7 @@ a<-replicate(B, {
 mean(a)
 ```
 
-7. In this section, we talked about pollster bias. We used visualization to motivate the presence of such bias. Here we will give it a more rigorous treatment. We will consider two pollsters that conducted daily polls. We will look at national polls for the month before the election.
+7.In this section, we talked about pollster bias. We used visualization to motivate the presence of such bias. Here we will give it a more rigorous treatment. We will consider two pollsters that conducted daily polls. We will look at national polls for the month before the election.
 ```{r}
 data(polls_us_election_2016)
 polls <- polls_us_election_2016 %>% 
@@ -286,10 +287,11 @@ We want to answer the question: is there a poll bias? Make a plot showing the sp
 ```{r}
 polls%>%
   ggplot(aes(pollster, spread))+
+  geom_boxplot()+
   geom_point()
 ```
 
-8. The data does seem to suggest there is a difference. However, these data are subject to variability. Perhaps the differences we observe are due to chance.
+8.The data does seem to suggest there is a difference. However, these data are subject to variability. Perhaps the differences we observe are due to chance.
 
 The urn model theory says nothing about pollster effect. Under the urn model, both pollsters have the same expected value: the election day difference, that we call $d$.
 
@@ -305,10 +307,10 @@ b. How close are the $Y_{i,j}$ to $d$?
 **c. Is $b_1 \neq b_2$?**
 d. Are $b_1 = 0$ and $b_2 = 0$?
 
-9. In the right side of this model only $\varepsilon_{i,j}$ is a random variable. The other two are constants. What is the expected value of $Y_{1,j}$?
+9.In the right side of this model only $\varepsilon_{i,j}$ is a random variable. The other two are constants. What is the expected value of $Y_{1,j}$?
 A: $d+b_1$
 
-10. Suppose we define $\bar{Y}_1$ as the average of poll results from the first poll, $Y_{1,1},\dots,Y_{1,N_1}$ with $N_1$ the number of polls conducted by the first pollster:
+10.Suppose we define $\bar{Y}_1$ as the average of poll results from the first poll, $Y_{1,1},\dots,Y_{1,N_1}$ with $N_1$ the number of polls conducted by the first pollster:
 
 ```{r}
 polls %>% 
@@ -319,35 +321,35 @@ polls %>%
 What is the expected values $\bar{Y}_1$?
 A: $d+b_1$
 
-11. What is the standard error of $\bar{Y}_1$?
+11.What is the standard error of $\bar{Y}_1$?
 A: $\ \sigma_1/\sqrt{N_1}$
 
-12. Suppose we define $\bar{Y}_2$ as the average of poll results from the first poll, $Y_{2,1},\dots,Y_{2,N_2}$ with $N_2$ the number of polls conducted by the first pollster. What is the expected value $\bar{Y}_2$?
-A: $d+b_2
+12.Suppose we define $\bar{Y}_2$ as the average of poll results from the first poll, $Y_{2,1},\dots,Y_{2,N_2}$ with $N_2$ the number of polls conducted by the first pollster. What is the expected value $\bar{Y}_2$?
+A: $d+b_2$
 
-13. What is the standard error of $\bar{Y}_1$?
+13.What is the standard error of $\bar{Y}_1$?
 A: $\ \sigma_2/\sqrt{N_2}$
 
-14. Using what we learned by answering the questions above, what is the expected value of $\bar{Y}_{2} - \bar{Y}_1$?
+14.Using what we learned by answering the questions above, what is the expected value of $\bar{Y}_{2} - \bar{Y}_1$?
 A: $b_2-b_1$
 
-15. Using what we learned by answering the questions above, what is the standard error of $\bar{Y}_{2} - \bar{Y}_1$?
+15.Using what we learned by answering the questions above, what is the standard error of $\bar{Y}_{2} - \bar{Y}_1$?
 A: $\ \sigma_2/\sqrt{N_2}-\ \sigma_1/\sqrt{N_1}$
 
-16. The answer to the question above depends on $\sigma_1$ and $\sigma_2$, which we don’t know. We learned that we can estimate these with the sample standard deviation. Write code that computes these two estimates.
+16.The answer to the question above depends on $\sigma_1$ and $\sigma_2$, which we don’t know. We learned that we can estimate these with the sample standard deviation. Write code that computes these two estimates.
 ```{r}
 polls %>% 
   group_by(pollster) %>% 
   summarize(sigma = sd(spread))
 ```
 
-17. What does the CLT tell us about the distribution of $\bar{Y}_{2} - \bar{Y}_1$?
+17.What does the CLT tell us about the distribution of $\bar{Y}_{2} - \bar{Y}_1$?
 a. Nothing because this is not the average of a sample.
 b. Because the $Y_{ij}$ are approximately normal, so are the averages.
 **c. Note that $\bar{Y}_{2}$ and $\bar{Y}_1$ are sample averages, so if we assume $N_2$ and $N_1$ are large enough, each is approximately normal. The difference of normals is also normal.**
 d. The data are not 0 or 1, so CLT does not apply.
 
-18. We have constructed a random variable that has expected value $b_2 - b_1$, the pollster bias difference. If our model holds, then this random variable has an approximately normal distribution and we know its standard error. The standard error depends on $\sigma_1$ and $\sigma_2$, but we can plug the sample standard deviations we computed above. We started off by asking: is $b_2 - b_1$ different from 0? Use all the information we have learned above to construct a 95% confidence interval for the difference $b_2$ and $b_2$.
+18.We have constructed a random variable that has expected value $b_2 - b_1$, the pollster bias difference. If our model holds, then this random variable has an approximately normal distribution and we know its standard error. The standard error depends on $\sigma_1$ and $\sigma_2$, but we can plug the sample standard deviations we computed above. We started off by asking: is $b_2 - b_1$ different from 0? Use all the information we have learned above to construct a 95% confidence interval for the difference $b_2$ and $b_2$.
 ```{r}
 poll <- polls %>% group_by(pollster) %>% summarize(avg=mean(spread), s = sd(spread), N=n())
 e_hat <- max(poll$avg) - min(poll$avg)
@@ -355,12 +357,12 @@ se_hat <- sqrt(poll$s[2]^2/poll$N[2] + poll$s[1]^2/poll$N[1])
 c(e_hat - qnorm(0.975)*se_hat, e_hat + qnorm(0.975)*se_hat)
 ```
 
-19. The confidence interval tells us there is relatively strong pollster effect resulting in a difference of about 5%. Random variability does not seem to explain it. We can compute a p-value to relay the fact that chance does not explain it. What is the p-value?
+19.The confidence interval tells us there is relatively strong pollster effect resulting in a difference of about 5%. Random variability does not seem to explain it. We can compute a p-value to relay the fact that chance does not explain it. What is the p-value?
 ```{r}
 2 * (1 - pnorm(e_hat / se_hat, 0, 1))
 ```
 
-20. The statistic formed by dividing our estimate of $b_2−b1_$ by its estimated standard error:
+20.The statistic formed by dividing our estimate of $b_2−b1_$ by its estimated standard error:
 $$\frac{\bar{Y}_2 - \bar{Y}_1}{\sqrt{s_2^2/N_2 + s_1^2/N_1}}$$
 is called the t-statistic. Now notice that we have more than two pollsters. We can also test for pollster effect using all pollsters, not just two. The idea is to compare the variability across polls to variability within polls. We can actually construct statistics to test for effects and approximate their distribution. The area of statistics that does this is called Analysis of Variance or ANOVA. We do not cover it here, but ANOVA provides a very useful set of tools to answer questions such as: is there a pollster effect?
 
