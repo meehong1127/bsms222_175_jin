@@ -1,0 +1,166 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Gene expressions in human dorsolateral prefrontal cortex(DL-PFC) from prenatal to adulthood stages
+
+### Introduction
+There are three data frame introduced in this assignment which are "**e**", "**s**", "**g**". Each stands for "RNA-seq expression", "gene information" and "sample information". 
+
+To create data frame "e", tissue processing and dissection is needed firstly([5](http://help.brain-map.org/download/attachments/3506181/Transcriptome_Profiling.pdf?version=1&modificationDate=1382036562736)). RNA extraction, mRNA library  preparation and sequencing, RNA sequencing alignment, Reads processing and quality filtering and Measuring Expression are the following steps to construct the data.([5](http://help.brain-map.org/download/attachments/3506181/Transcriptome_Profiling.pdf?version=1&modificationDate=1382036562736)) 
+
+BrainSpan which is an atlas of the developing human brain is the referencen material of Data frame "g".
+
+As for sample information, brains were collected from individuals ranging from 8 post-conceptional weeks(pcw) to 40 years of age to ensure that except for embryonic stage, all developmental  and adult stages were included.([5](http://help.brain-map.org/download/attachments/3506181/Transcriptome_Profiling.pdf?version=1&modificationDate=1382036562736)) Samples were categorized into different stages based upon age and major neurodevelopmental milestones.([5](http://help.brain-map.org/download/attachments/3506181/Transcriptome_Profiling.pdf?version=1&modificationDate=1382036562736)) Prenatal age was extrapolated based upon the date of the mother’s last menstruation, characteristics of the fetus noted upon ultrasonographic scanning, and foot length of the fetus.([5](http://help.brain-map.org/download/attachments/3506181/Transcriptome_Profiling.pdf?version=1&modificationDate=1382036562736))
+
+Here I chose 8 genes for plotting. **Myelin-associated basic protein (MOBP)**, **myelin-associated glycoprotein (MAG)**, **2’,3’-cyclic nucleotide 3’-phosphodiesterase (CNP)** and **oligodendrocyte-lineage transcription factor2 (OLIG2)** which are oligodendrocyte-associated genes in DLPFC. Decreased mRNA expression of these genes are found in patients with schizophrenia([Mitkus, Shruti N., et al. 2008](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2259271/)). The others are **CSMD1**, **C10orf26**, **CACNA1C** and **TCF4**. A recently completed genome-wide association study (GWAS) implicated single-nucleotide polymorphisms in the MIR137 gene as being highly associated with schizophrenia which encodes for the microRNA miR-137([Ripke, Stephan, et al. 2011](https://www.nature.com/articles/ng.940)). miR-137 has been implicated in the regulation of adult neurogenesis([Szulwach, Keith E., et al. 2010](http://jcb.rupress.org/content/189/1/127.short)) and neuron maturation([Smrt, Richard D., et al. 2010](https://stemcellsjournals.onlinelibrary.wiley.com/doi/full/10.1002/stem.431)). And CSMD1, C10orf26, CACNA1C and TCF4 are regulated by miR-137([Kwon et al. 2013](https://www.nature.com/articles/mp2011170)). Thus, patients with schizophrenia should express lower levels of these genes. 
+
+```{r}
+load('~/Downloads/data_brainspan_DFC.20190928.Rdata')
+library(tidyr)
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(cowplot)
+```
+
+```{r}
+# add a new column named "row_num" to the data frame "e"
+e<-e%>%
+  mutate(row_num=1:52376)
+```
+
+```{r}
+# convert the wide format data frame "e" to a long format dataframe "e1"
+e1 <- gather(e, column_num, expression_level, X1:X35, factor_key=TRUE)
+```
+
+```{r}
+# remove all X from the data frame "e1" in column "column_num"
+e1<- e1%>%
+  mutate(column_num=gsub("X","",e1$column_num))
+```
+
+```{r}
+# merge two data frames "e1" and "g" to a data frame named "eg"
+eg<-merge(e1, g, by="row_num")
+```
+
+```{r}
+# merge two data frames "eg" and "s" to a data frame named "esg"
+esg<-merge(eg, s, by="column_num")
+```
+
+```{r}
+# change the name of columns in "esg" from " column_num" to "sample_num" and "row_num" to "gene_num"
+colnames(esg)[1]<- ("sample_num")
+colnames(esg)[2]<-("gene_num")
+```
+
+```{r}
+# add two new columns "Developmental_period" and "Stage" according to sample's age
+esg<- esg%>%
+  mutate(Developmental_period=case_when(
+    age%in%c("8 pcw", "9 pcw","12 pcw")~"early prenatal" ,
+    age%in%c("13 pcw","16 pcw","17 pcw")~"early mid-prenatal",
+    age%in%c("19 pcw","21 pcw","24 pcw")~"late mid-prenatal",
+    age%in%c("26 pcw", "37 pcw")~"late prenatal",
+    age == "4 mos" ~ "early infancy",
+    age=="10 mos" ~ "late infancy",
+    age %in% c("1 yrs","2 yrs","3 yrs","4 yrs") ~ "early childhood",
+    age %in% c("8 yrs","11 yrs") ~ "late childhood",
+    age %in% c("13 yrs","18 yrs","19 yrs") ~ "adolescence",
+    TRUE ~ "adulthood"
+  ))
+esg<-esg%>%
+  mutate(Stage=case_when(
+    age%in%c("8 pcw", "9 pcw") ~ "2A",
+    age=="12 pcw" ~ "2B",
+    age=="13 pcw" ~ "3A",
+    age%in%c("16 pcw","17 pcw") ~ "3B",
+    age%in%c("19 pcw","21 pcw","24 pcw")~ "4",
+    age%in%c("26 pcw", "37 pcw")~ "5",
+    age == "4 mos" ~ "6",
+    age=="10 mos" ~ "7",
+    age %in% c("1 yrs","2 yrs","3 yrs","4 yrs") ~ "8",
+    age %in% c("8 yrs","11 yrs") ~ "9",
+    age %in% c("13 yrs","18 yrs","19 yrs") ~ "10",
+    TRUE ~ "11"
+  ))
+```
+
+```{r}
+# convert dataframe "esg" to a tibble data frame
+esg<-as_tibble(esg)
+```
+
+```{r}
+# mutate sample_num data to become numeric for reordering
+esg<-esg%>%
+  mutate(sample_num=as.numeric(sample_num))
+```
+
+```{r}
+# filter rows with several genes(MOBP,CNP,MAG,OLIG2) and samples whose age are in range of 10 to 30 years old.
+multiple1<-esg%>%
+  filter(gene_symbol%in%c("MOBP", "CNP","MAG","OLIG2")&expression_level>0.0&age%in%c("11 yrs", "13 yrs", "18 yrs", "19yrs","21 yrs", "30 yrs"))
+```
+
+```{r}
+# filter rows with several genes(CSMD1,C10orf26,CACNA1C,TCF4) 
+multiple2<- esg%>%
+  filter(gene_symbol%in%c("CSMD1", "C10orf26", "CACNA1C","TCF4")&expression_level>0.0)
+```
+
+
+```{r}
+# comparing expression levels of several genes from early prenatal to adulthood by sex
+a<-multiple1%>%
+  mutate(age=reorder(age, sample_num))%>%
+  ggplot(aes(gene_symbol, expression_level))+
+  geom_jitter(alpha = 0.8,aes(color=age), show.legend = FALSE)+
+  facet_wrap(~age, ncol=3)+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  xlab("Gene symbol")+
+  ylab("Expression level(RPKM)")+
+  ggtitle("Oligodendrocyte-associated genes")
+a
+```
+
+
+```{r}
+b<-multiple2%>%
+   mutate(Developmental_period = reorder(Developmental_period, sample_num)) %>%
+  ggplot(aes(Developmental_period,expression_level, group=gender))+
+  geom_line(position = "identity", aes(color=gender))+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  facet_wrap(~gene_symbol, nrow=2)+
+  theme(panel.background = element_rect("white"))+
+  xlab("Developmental period")+
+  ylab("Expression level(RPKM)")+
+  ggtitle("Schizophrenia-associated genes")
+b
+```
+
+
+### Conclusion
+Schizophrenia can occur at any age, the average age of onset tends to be in the late teens to the early 20s for men, and the late 20s to early 30s for women.Since there are no sample shows particular low expression levels of Oligodendrocyte-associated genes, we can assume that there are no patient with Schizophrenia. 
+
+As we can see from the plot c and d, expression levels of CSMD1 and CACNA1C show no much differencens with aging but TCF4 and C10orf26 show downward trend in expression levels which lead to lower levels of miR-137 in brain. This indicates neurogenesis and neuron maturation happens from early prenatal. Although Schizophrenia can occur at any age, the average age of onset tends to be in the late teens to the early 20s for men, and the late 20s to early 30s for women. The result of these plots validates after adolescence, people have a bigger posibility to be diagnosised with Schizophrenia.
+
+
+# References
+
+1. Mitkus, Shruti N., et al. "Expression of oligodendrocyte-associated genes in dorsolateral prefrontal cortex of patients with schizophrenia." _Schizophrenia research_ 98.1-3 (2008): 129-138.
+2. Kwon, E., W. Wang, and L. H. Tsai. "Validation of schizophrenia-associated genes CSMD1, C10orf26, CACNA1C and TCF4 as miR-137 targets." _Molecular psychiatry_ 18.1 (2013): 11.
+3. Ripke, Stephan, et al. "Genome-wide association study identifies five new schizophrenia loci." _Nature genetics_ 43.10 (2011): 969.
+4. Szulwach, Keith E., et al. "Cross talk between microRNA and epigenetic regulation in adult neurogenesis." _The Journal of cell biology_ 189.1 (2010): 127-141.
+5. _TECHNICAL WHITE PAPER: TRANSCRIPTOME PROFILING BY RNA SEQUENCING AND EXON MICROARRAY_ http://help.brain-map.org/download/attachments/3506181/Transcriptome_Profiling.pdf?version=1&modificationDate=1382036562736.
+
+
+# Comments from other students
+
+For the plot a, a student commented it would be better to use all samples to make the plot. But as I already explained above, using those samples with particular age is because the the average age of onset of Schizophrenia is late teens to early 30s, so there's nothing this plot needed to be modified. 
+
+For the plot b, other sutdents said that the unit of expression level should be denoted, so i add it. Another comment is that sex should be used here to stand for biological sex. But it seems not proper to change the column name of original data, so I didn't chage it. 
