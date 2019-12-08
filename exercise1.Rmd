@@ -1,0 +1,95 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+
+
+
+```{r}
+set.seed(1)
+I <- 5
+J <- 6
+N <- 20
+d <- .021
+p <- (d + 1)/2
+X1 <- sapply(1:I, function(i){
+  d + rnorm(J, 0, 2 * sqrt(p * (1 - p) / N))
+})
+X1<-as.data.frame(X1)
+X1<-X1%>%
+  rename(A=V1, B=V2, C=V3, D=V4, E=V5)
+X1<-X1%>%
+  as_tibble(X1)%>%
+  gather(pollster, spread, A:E, factor_key=TRUE)%>%
+  mutate(N=20)
+p1<-X1%>%
+  ggplot(aes(pollster, spread))+
+  geom_point()+
+  coord_flip()
+```
+
+
+```{r}
+set.seed(1)
+I <- 5
+J <- 6
+N <- 2000
+d <- .021
+p <- (d + 1)/2
+X2 <- sapply(1:I, function(i){
+  d + rnorm(J, 0, 2 * sqrt(p * (1 - p) / N))
+})
+X2<-as.data.frame(X2)
+X2<-X2%>%
+  rename(A=V1, B=V2, C=V3, D=V4, E=V5)
+X2<-X2%>%
+  as_tibble(X2)%>%
+  gather(pollster, spread, A:E, factor_key=TRUE)%>%
+  mutate(N=2000)
+p2<-X2%>%
+  ggplot(aes(pollster, spread))+
+  geom_point()+
+  coord_flip()
+```
+
+
+```{r}
+set.seed(1)
+I <- 5
+J <- 6
+N <- 20000
+d <- .021
+p <- (d + 1)/2
+X3 <- sapply(1:I, function(i){
+  d + rnorm(J, 0, 2 * sqrt(p * (1 - p) / N))
+})
+X3<-as.data.frame(X3)
+X3<-X3%>%
+  rename(A=V1, B=V2, C=V3, D=V4, E=V5)
+X3<-X3%>%
+  as_tibble(X3)%>%
+  gather(pollster, spread, A:E, factor_key=TRUE)%>%
+  mutate(N=20000)
+p3<-X3%>%
+  ggplot(aes(pollster, spread))+
+  geom_point()+
+  coord_flip()
+```
+
+```{r}
+X<-rbind.data.frame(X1, X2, X3)
+X%>%
+  ggplot(aes(pollster, spread))+
+  geom_point()+
+  coord_flip()+
+  facet_wrap(~N, ncol = 3)
+```
+
+```{r}
+library(cowplot)
+plot_grid(p1, p2, p3, ncol = 3)
+
+```
+
