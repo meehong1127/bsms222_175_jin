@@ -1,0 +1,248 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+set.seed(1)
+p <- 0.45
+N <- 1000
+B <- 10000
+x_hat <- replicate(B, {
+  x <- sample(c(0,1), size = N, replace = TRUE, prob = c(1-p, p))
+  mean(x)
+})
+X<-as_tibble(x_hat)
+X<-X%>%
+  rename(x_hat=value)
+```
+
+
+```{r}
+p1<-X%>%
+  ggplot(aes(x_hat))+
+  geom_histogram(color="black", fill="white")
+p1
+```
+
+
+```{r}
+p2<-X%>%
+  ggplot(aes(sample=x_hat))+
+  geom_qq()+
+  geom_qq_line()
+p2
+```
+
+
+```{r}
+set.seed(1)
+p <- 0.45
+N <- 1000
+B <- 10
+x_hat <- replicate(B, {
+  x <- sample(c(0,1), size = N, replace = TRUE, prob = c(1-p, p))
+  mean(x)
+})
+X10<-as_tibble(x_hat)
+X10<-X10%>%
+  rename(x_hat=value)
+```
+
+
+```{r}
+p3<-X10%>%
+  ggplot(aes(x_hat))+
+  geom_histogram( color="black", fill="white")+
+  scale_x_continuous(limits = c(0.35, 0.55))
+p3
+```
+
+
+```{r}
+p4<-X10%>%
+  ggplot(aes(sample=x_hat))+
+  geom_qq()+
+  geom_qq_line()
+p4
+```
+
+
+```{r}
+set.seed(1)
+p <- 0.45
+N <- 1000
+B <- 100
+x_hat <- replicate(B, {
+  x <- sample(c(0,1), size = N, replace = TRUE, prob = c(1-p, p))
+  mean(x)
+})
+X100<-as_tibble(x_hat)
+X100<-X100%>%
+  rename(x_hat=value)
+```
+
+
+```{r}
+p5<-X100%>%
+  ggplot(aes(x_hat))+
+  geom_histogram(color="black", fill="white")
+p5
+```
+
+```{r}
+p6<-X100%>%
+  ggplot(aes(sample=x_hat))+
+  geom_qq()+
+  geom_qq_line()
+p6
+```
+
+```{r}
+library(cowplot)
+plot_grid(p1,p3,p5)
+plot_grid(p2, p4, p6)
+```
+
+```{r}
+ggsave("plot_exercise_confidence_interval_191209.pdf", p)
+```
+
+```{r}
+set.seed(1)
+p <- 0.45
+N <- 1000
+B1 <- 10000
+inside <- replicate(B1, {
+  x <- sample(c(0,1), size = N, replace = TRUE, prob = c(1-p, p))
+  x_hat <- mean(x)
+  se_hat <- sqrt(x_hat * (1 - x_hat) / N)
+  between(p, x_hat - 1.96 * se_hat, x_hat + 1.96 * se_hat)
+  return(c(x_hat, se_hat))
+})
+z1<-t(inside)
+z1<-as.tibble(z1)
+```
+
+```{r}
+z1<-z1%>%
+  rename(x_hat=V1, se_hat=V2)%>%
+  mutate(ci_low=x_hat - 1.96 * se_hat, ci_high=x_hat + 1.96 * se_hat, p_inside=ifelse(p>=ci_low&p<=ci_high, "Yes", "No"), n=seq(1:B1))%>%
+  filter(n<101)
+```
+
+```{r}
+p1<-z1%>%
+  ggplot(aes(n, x_hat, color=p_inside))+
+  geom_errorbar(aes(ymin=ci_low , ymax=ci_high))+
+  geom_point(size=0.5)+
+  geom_hline(yintercept=p)+
+  coord_flip()+
+  theme_bw()
+p1
+```
+```{r}
+library(dslabs)
+data(heights)
+```
+
+```{r}
+d<-heights%>%
+  filter(sex=="Male")
+```
+
+```{r}
+ave<-mean(d$height)
+s_d<-sd(d$height)
+```
+
+```{r}
+N<-5
+B<-10000
+a<-replicate(B, {
+  x<-sample(d$height,N, replace = T)
+  x_hat <- mean(x)
+  sd_hat <- sd(x)
+  return(c(x_hat, sd_hat))
+})
+a<-t(a)
+a<-as.tibble(a)
+```
+
+
+```{r}
+a<-a%>%
+  rename(x_hat=V1, sd_hat=V2)%>%
+  mutate(N=N)
+```
+
+```{r}
+N<-50
+B<-10000
+a1<-replicate(B, {
+  x<-sample(d$height,N, replace = T)
+  x_hat <- mean(x)
+  sd_hat <- sd(x)
+  return(c(x_hat, sd_hat))
+})
+a1<-t(a1)
+a1<-as.tibble(a1)
+```
+
+
+```{r}
+a1<-a1%>%
+  rename(x_hat=V1, sd_hat=V2)%>%
+  mutate(N=N)
+```
+
+
+
+```{r}
+N<-800
+B<-10000
+a2<-replicate(B, {
+  x<-sample(d$height,N, replace = T)
+  x_hat <- mean(x)
+  sd_hat <- sd(x)
+  return(c(x_hat, sd_hat))
+})
+a2<-t(a2)
+a2<-as.tibble(a2)
+```
+
+
+```{r}
+a2<-a2%>%
+  rename(x_hat=V1, sd_hat=V2)%>%
+  mutate(N=N)
+```
+
+```{r}
+A<-rbind.data.frame(a,a1,a2)
+```
+
+
+```{r}
+A%>%
+  ggplot(aes(sd_hat))+
+  geom_histogram(bins=200)+
+  facet_wrap(~N, ncol = 3, scale="free_x")
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
