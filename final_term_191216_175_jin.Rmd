@@ -1,0 +1,185 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+  pdf_document: default
+---
+
+
+Q1. From the dataset `heights`   in   the   `dslabs`   package,   please   describe   the distribution   of   male   and   female   heights.   If   you   pick   a   female   at   random,   what   is the   probability   that   she   is   61   inches   or   shorter? 
+```{r}
+library(dslabs)
+data(heights)
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(cowplot)
+```
+
+
+```{r}
+p<-heights%>%
+  ggplot(aes(height))+
+  geom_histogram(color="black", fill="white")+
+  facet_wrap(~sex, scale="free_x")
+p
+```
+
+Since there are a bias in the smaple size different sex, total counts are not the same. Heights for femalse mostly are in the interval of 58 to 70, while heights for males mostly are in 60 to 76. The most counted height for female seems like is 64, but for male is 68.
+
+
+```{r}
+female<-heights%>%
+  filter(sex=="Female")
+ave<-mean(female$height)
+s_d<-sd(female$height)
+pnorm(61, ave, s_d)
+```
+
+
+Q2.   For   American   Roulette,   there   are   19   reds,   16   blacks   and   3   greens.   The   payout for   winning   on   green   is   15   dollars.   You   create   a   random   variable   that   is   the   sum   of your   winnings   after   betting   on   green   1000   times.   Start   your   code   by   setting   the seed   to   1.   Describe   your   random   variable   (e.g.   the   expected   value,   the   standard error).   Then,   create   a   Monte   Carlo   simulation   that   generates   1,000   outcomes   of   a random   variable,   and   then   describe   your   result.
+```{r}
+set.seed(1)
+p<-3/(19+16+3)
+N<-1000
+x<-sample(c(15, -1),N, replace = T, prob = c(p, 1-p) )
+X<-sum(x)
+X
+```
+
+```{r}
+ex<- N*(p*15+(1-p)*-1)
+se<-sqrt(N)*16*sqrt(p*(1-p))
+ex
+se
+```
+The random variable which I get is 472, it means total money that I get after  betting  on   green   1000   times. An the expected value is 263, standard error is 136, that means, this random variable is far from what we expected. 
+
+
+```{r}
+set.seed(1)
+B<-1000
+N<-1000
+p<-3/(19+16+3)
+Z <- replicate(B,{
+  x<-sample(c(15,-1), N, replace = TRUE, prob = c(p, 1-p) )
+  sum(x)
+})
+```
+
+```{r}
+Z<-as_tibble(Z)
+```
+
+
+```{r}
+Z%>%
+  ggplot(aes(value))+
+  geom_histogram(color="black", fill="white")+
+  geom_vline(xintercept = ex, color="blue")
+```
+
+When the number of draws is large enough, the probability distribution of the standard diviation of random variables is approximately normal, which is also can be explained as Central Limit Theorem (CLT).
+
+
+
+Q3.   From   the   poll   example,   we   will   create   a   Monte   Carlo   simulation   for   p   =   0.45. You   will   compare   the   sampling   size   (N)   for   10,   1000,   and   the   repeat   size   (B)   for 100,   10000.   So   you   should   have   four   combinations   (10   N   x   100   B,   1000   N   x   100   B, 10   N   x   10000   B,   1000   N   x   10000   B).   Please   describe   your   Monte   Carlo   simulation results,   and   compare   four   combinations. 
+
+In this plot, we can see  10Nx100B and 10Nx10000B has some values are not in the confidence interval, but for the plot with sample size 1000, less are not in the confidence interval. This indicates that larger samples give us more precise estimates with lower standard error and tighter confidence intervals. 
+
+
+```{r}
+set.seed(1)
+p<-0.45
+
+cal10<-function(B, p){
+  p<-0.45
+  set.seed(1)
+  X<-replicate(B, {
+  x<-sample(c(1,0), 10, replace=T, prob=c(p, 1-p))
+  x_hat<-mean(x)
+  se_hat<-sqrt(x_hat*(1-x_hat)/10)
+  c(x_hat, se_hat)
+})}
+
+cal1000<-function(B){
+  set.seed(1)
+  p<-0.45
+  X<-replicate(B, {
+  x<-sample(c(1,0), 1000, replace=T, prob=c(p, 1-p))
+  x_hat<-mean(x)
+  se_hat<-sqrt(x_hat*(1-x_hat)/1000)
+  c(x_hat, se_hat)
+})}
+```
+
+
+```{r}
+X1<-cal10(100)
+X2<-cal1000(100)
+X3<-cal10(10000)
+X4<-cal1000(10000)
+```
+
+
+```{r}
+X1<-t(X1)
+X1<-as_tibble(X1)
+X1<-X1%>%
+  rename(x_hat=V1, se_hat=V2)%>%
+  mutate(low=x_hat-qnorm(0.975)*se_hat, high=x_hat+qnorm(0.975)*se_hat, n=seq(1:100), p_inside=ifelse(p>=low&p<=high, "Y", "N"))
+X2<-t(X2)
+X2<-as_tibble(X2)
+X2<-X2%>%
+  rename(x_hat=V1, se_hat=V2)%>%
+  mutate(low=x_hat-qnorm(0.975)*se_hat, high=x_hat+qnorm(0.975)*se_hat, n=seq(1:100), p_inside=ifelse(p>=low&p<=high, "Y", "N"))
+X3<-t(X3)
+X3<-as_tibble(X3)
+X3<-X3%>%
+  rename(x_hat=V1, se_hat=V2)%>%
+  mutate(low=x_hat-qnorm(0.975)*se_hat, high=x_hat+qnorm(0.975)*se_hat, n=seq(1:10000), p_inside=ifelse(p>=low&p<=high, "Y", "N"))
+X4<-t(X4)
+X4<-as_tibble(X4)
+X4<-X4%>%
+  rename(x_hat=V1, se_hat=V2)%>%
+  mutate(low=x_hat-qnorm(0.975)*se_hat, high=x_hat+qnorm(0.975)*se_hat, n=seq(1:10000), p_inside=ifelse(p>=low&p<=high, "Y", "N"))
+```
+
+
+```{r}
+plot1<-function(dat){
+  dat%>%
+    ggplot(aes(n, x_hat, color=p_inside))+
+  geom_errorbar(aes(ymin=low, ymax=high))+
+  geom_point(size=0.5)+
+  geom_hline(yintercept=p)+
+  coord_flip()+
+  theme_bw()
+}
+plot2<-function(dat){
+  dat%>%
+    filter(n<101)%>%
+    ggplot(aes(n, x_hat, color=p_inside))+
+  geom_errorbar(aes(ymin=low, ymax=high))+
+  geom_point(size=0.5)+
+  geom_hline(yintercept=p)+
+  coord_flip()+
+  theme_bw()
+}
+```
+
+
+```{r}
+p1<-plot1(X1)
+p2<-plot1(X2)
+p3<-plot2(X3)
+p4<-plot2(X4)
+```
+
+```{r}
+plot_grid(p1, p2, p3, p4, ncol = 2)
+```
+In this plot, we can see  10Nx100B and 10Nx10000B has some values are not in the confidence interval, but for the plot with sample size 1000, less are not in the confidence interval. This indicates that larger samples give us more precise estimates with lower standard error and tighter confidence intervals. 
+
