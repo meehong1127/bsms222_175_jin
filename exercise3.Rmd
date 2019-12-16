@@ -1,0 +1,202 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+When the number of draws or the sample size is large enough, the probability distribution of the standard diviation of random variables is approximately normal, which is also can be explained as Central Limit Theorem (CLT).
+
+Increasing the sample size decreases the width of confidence intervals, because it decreases the standard error.
+
+This indicates that for a given confidence level, the larger your sample size, the smaller your confidence interval.However, the relationship is not linear
+
+There is a relationship between sample size and the width of the confidence interval.
+
+Larger samples give more precise estimates with lower standard error and tighter confidence intervals. 
+```{r}
+set.seed(1)
+p<-0.4
+N<-2000
+B<-100
+X<-replicate(B, {
+  x<-sample(c(1,0), N, replace=T, prob=c(p, 1-p))
+  x_hat<-mean(x)
+  se_hat<-sqrt(x_hat*(1-x_hat)/N)
+  c(x_hat, se_hat)
+})
+```
+
+
+```{r}
+X<-t(X)
+X<-as.tibble(X)
+```
+
+
+```{r}
+X%>%
+  rename(x_hat=V1, se_hat=V2)%>%
+  mutate(low=x_hat-qnorm(0.975)*se_hat, high=x_hat+qnorm(0.975)*se_hat, n=seq(1:B), p_inside=ifelse(p>=low&p<=high, "Y", "N"))%>%
+  ggplot(aes(n, x_hat, color=p_inside))+
+  geom_errorbar(aes(ymin=low, ymax=high))+
+  geom_point(size=0.5)+
+  geom_hline(yintercept=p)+
+  coord_flip()+
+  theme_bw()
+```
+
+
+```{r}
+X%>%
+  rename(x_hat=V1, se_hat=V2)%>%
+  mutate(low=x_hat-qnorm(0.975)*se_hat, high=x_hat+qnorm(0.975)*se_hat, n=seq(1:B), p_inside=ifelse(p>=low&p<=high, "Y", "N"))%>%
+  ggplot(aes(n, x_hat))+
+  geom_line()+
+    geom_ribbon(aes(ymin=low, ymax=high , x=n, fill = "band"), alpha = 0.3)+
+    scale_colour_manual("",values="blue")+
+    scale_fill_manual("",values="grey12")+
+  geom_hline(yintercept=p,  color = "blue")+
+  theme_bw()
+```
+
+```{r}
+cal<-function(B){
+  set.seed(1)
+  X<-replicate(B, {
+  x<-sample(c(1,0), N, replace=T, prob=c(p, 1-p))
+  x_hat<-mean(x)
+  se_hat<-sqrt(x_hat*(1-x_hat)/N)
+  c(x_hat, se_hat)
+})
+  X<-t(X)
+ 
+```
+
+
+```{r}
+B<-10
+X1<-cal(B)
+X2<-cal(100)
+X3<-cal(1000)
+```
+
+
+```{r}
+plot<-function(dat){
+  dat%>%
+    ggplot(aes(n, x_hat, color=p_inside))+
+  geom_errorbar(aes(ymin=low, ymax=high))+
+  geom_point(size=0.5)+
+  geom_hline(yintercept=p)+
+  coord_flip()+
+  theme_bw()
+}
+```
+
+
+```{r}
+p1<-plot(X1)
+p2<-plot(X2)
+p3<-plot(X3)
+```
+
+
+```{r}
+library(cowplot)
+plot_grid(p1, p2, p3)
+```
+
+
+
+
+```{r}
+set.seed(1)
+p<-0.45
+
+cal10<-function(B, p){
+  p<-0.45
+  set.seed(1)
+  X<-replicate(B, {
+  x<-sample(c(1,0), 10, replace=T, prob=c(p, 1-p))
+  x_hat<-mean(x)
+  se_hat<-sqrt(x_hat*(1-x_hat)/N)
+  c(x_hat, se_hat)
+})}
+
+cal1000<-function(B){
+  set.seed(1)
+  p<-0.45
+  X<-replicate(B, {
+  x<-sample(c(1,0), 1000, replace=T, prob=c(p, 1-p))
+  x_hat<-mean(x)
+  se_hat<-sqrt(x_hat*(1-x_hat)/N)
+  c(x_hat, se_hat)
+})}
+```
+
+
+```{r}
+X1<-cal10(100)
+X2<-cal1000(100)
+X3<-cal10(10000)
+X4<-cal1000(10000)
+```
+
+
+```{r}
+X1<-t(X1)
+X1<-as_tibble(X1)
+X1<-X1%>%
+  rename(x_hat=V1, se_hat=V2)%>%
+  mutate(low=x_hat-qnorm(0.975)*se_hat, high=x_hat+qnorm(0.975)*se_hat, n=seq(1:100), p_inside=ifelse(p>=low&p<=high, "Y", "N"))
+X2<-t(X2)
+X2<-as_tibble(X2)
+X2<-X2%>%
+  rename(x_hat=V1, se_hat=V2)%>%
+  mutate(low=x_hat-qnorm(0.975)*se_hat, high=x_hat+qnorm(0.975)*se_hat, n=seq(1:100), p_inside=ifelse(p>=low&p<=high, "Y", "N"))
+X3<-t(X3)
+X3<-as_tibble(X3)
+X3<-X3%>%
+  rename(x_hat=V1, se_hat=V2)%>%
+  mutate(low=x_hat-qnorm(0.975)*se_hat, high=x_hat+qnorm(0.975)*se_hat, n=seq(1:10000), p_inside=ifelse(p>=low&p<=high, "Y", "N"))
+X4<-t(X4)
+X4<-as_tibble(X4)
+X4<-X4%>%
+  rename(x_hat=V1, se_hat=V2)%>%
+  mutate(low=x_hat-qnorm(0.975)*se_hat, high=x_hat+qnorm(0.975)*se_hat, n=seq(1:10000), p_inside=ifelse(p>=low&p<=high, "Y", "N"))
+```
+
+
+```{r}
+plot1<-function(dat){
+  dat%>%
+    ggplot(aes(n, x_hat, color=p_inside))+
+  geom_errorbar(aes(ymin=low, ymax=high))+
+  geom_point(size=0.5)+
+  geom_hline(yintercept=p)+
+  coord_flip()+
+  theme_bw()
+}
+plot2<-function(dat){
+  dat%>%
+    filter(n<101)%>%
+    ggplot(aes(n, x_hat, color=p_inside))+
+  geom_errorbar(aes(ymin=low, ymax=high))+
+  geom_point(size=0.5)+
+  geom_hline(yintercept=p)+
+  coord_flip()+
+  theme_bw()
+}
+```
+
+
+```{r}
+p1<-plot1(X1)
+p2<-plot1(X2)
+p3<-plot2(X3)
+p4<-plot2(X4)
+```
+
+```{r}
+plot_grid(p1, p2, p3, p4, ncol = 2)
+```
