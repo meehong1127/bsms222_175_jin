@@ -5,6 +5,10 @@ output:
     df_print: paged
 ---
 
+# Analyzing dataset of WES(whole exome sequencing) result of 10 pancreatic cancer patients
+
+10 genes of typical causative mutation in pancreatic cancer: **KRAS**, **TP53**, **TGFB1**, **TGFBR2**, **CDKN2A**, **STK11IP**, **SMAD4**, **BRCA1**, **APC**, **PALB2**
+
 ```{r}
 library(tidyverse)
 library(readxl)
