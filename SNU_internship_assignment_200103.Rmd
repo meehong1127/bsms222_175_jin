@@ -1,0 +1,26 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r}
+library(tidyverse)
+library(dplyr)
+library(readxl)
+```
+
+
+```{r}
+d<-read_excel("~/Downloads/Pancreatic Cancer All Cell Lines_HIGH,MODERATE_DUP REMOVED.xlsx")
+```
+
+
+```{r}
+d1<-d%>%
+  filter(Gene_Name%in%c("KRAS","TP53", "TGFB1", "TGFBR2","CDKN2A","STK11IP","SMAD4","BRCA1","APC", "PALB2"))%>%
+  select(c("CHROM", "POS", "ID", "REF", "ALT", "Impact", "Gene_Name", "HGVS.c", "HGVS.p"))
+d1
+```
+
