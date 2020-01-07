@@ -64,12 +64,14 @@ j<-cal(genes, 19)
 # Commonly mutated genes in all 10 patients
 common_genes<-Reduce(intersect,list(unique(a$Gene_Name),unique(b$Gene_Name),unique(c$Gene_Name),unique(d$Gene_Name),unique(e$Gene_Name),unique(f$Gene_Name),unique(g$Gene_Name),unique(h$Gene_Name),unique(i$Gene_Name),unique(j$Gene_Name)))
 common_genes<-as_tibble(common_genes)
+common_genes
 ```
 
 ```{r}
 #Commonly mutated positons in all 10 patients
 common_pos<-Reduce(intersect,list(a$POS, b$POS, c$POS, d$POS, e$POS, f$POS, g$POS, h$POS, i$POS, j$POS))
 common_pos<-as_tibble(common_pos)
+common_pos
 ```
 
 ```{r}
@@ -114,6 +116,7 @@ tcga_genes<-getGeneSummary(tcga)
 
 ```{r}
 common_gene<-Reduce(intersect,list(unique(a$Gene_Name),unique(b$Gene_Name),unique(c$Gene_Name),unique(d$Gene_Name),unique(e$Gene_Name),unique(f$Gene_Name),unique(g$Gene_Name),unique(h$Gene_Name),unique(i$Gene_Name),unique(j$Gene_Name)))
+common_gene
 ```
 
 ```{r}
