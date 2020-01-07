@@ -1,0 +1,126 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Analyzing dataset of WES(whole exome sequencing) result of 10 pancreatic cancer patients(advanced)
+
+1. Find out commonly mutated genes in 10 patients
+2. Find out specifically mutated genes in each patient
+3. Calculate the percentage of commonly mutated genes in TCGA-GDC dataset
+4. To check if the specifically mutated genes are reported in the PUBMED site
+
+```{r}
+library(tidyverse)
+library(readxl)
+```
+
+
+```{r}
+d<-read_excel("~/Downloads/Pancreatic Cancer All Cell Lines_HIGH,MODERATE_DUP REMOVED.xlsx")
+d<-as_tibble(d)
+```
+```{r}
+genes<-d[ ,c(1:5,11,12,18,19,30,31,72:81) ]
+```
+
+```{r}
+# Select Polyphe2 colomn which only contains "D"
+x<-c("B", "P")
+x<-grep(paste(x, collapse="|"),genes$`Polyphen2 HVAR Pred`)
+genes<-genes[-x, ]
+genes<-genes[grep("D",genes$`Polyphen2 HVAR Pred`), ]
+```
+
+
+```{r}
+#Select SIFT pred column which only contains "D"
+genes<-genes[-grep("T",genes$`SIFT Pred`), ]
+```
+
+```{r}
+cal<-function(dat,a){
+  x<-which(dat[ ,a]!=0)
+x<-dat[x,1:10]
+return(x)
+}
+```
+
+```{r}
+a<-cal(genes, 10)
+b<-cal(genes, 11)
+c<-cal(genes, 12)
+d<-cal(genes, 13)
+e<-cal(genes, 14)
+f<-cal(genes, 15)
+g<-cal(genes, 16)
+h<-cal(genes, 17)
+i<-cal(genes, 18)
+j<-cal(genes, 19)
+```
+
+
+```{r}
+# Commonly mutated genes in all 10 patients
+common_genes<-Reduce(intersect,list(unique(a$Gene_Name),unique(b$Gene_Name),unique(c$Gene_Name),unique(d$Gene_Name),unique(e$Gene_Name),unique(f$Gene_Name),unique(g$Gene_Name),unique(h$Gene_Name),unique(i$Gene_Name),unique(j$Gene_Name)))
+common_genes<-as_tibble(common_genes)
+```
+
+```{r}
+#Commonly mutated positons in all 10 patients
+common_pos<-Reduce(intersect,list(a$POS, b$POS, c$POS, d$POS, e$POS, f$POS, g$POS, h$POS, i$POS, j$POS))
+common_pos<-as_tibble(common_pos)
+```
+
+```{r}
+specific<- list(A = unique(a$Gene_Name),
+            B = unique(b$Gene_Name),
+            C = unique(c$Gene_Name),
+            D = unique(d$Gene_Name),
+            E = unique(e$Gene_Name),
+            f = unique(f$Gene_Name),
+            G = unique(g$Gene_Name),
+            H = unique(h$Gene_Name),
+            I = unique(i$Gene_Name),
+            J = unique(j$Gene_Name))
+specific_gene<-lapply(1:length(specific), function(n) setdiff(specific[[n]], unlist(specific[-n])))
+```
+
+
+```{r}
+# specifically mutated genes which are found in each patient
+specific_a<-as_tibble(specific_gene[[1]])
+specific_b<-as_tibble(specific_gene[[2]])
+specific_c<-as_tibble(specific_gene[[3]])
+specific_d<-as_tibble(specific_gene[[4]])
+specific_e<-as_tibble(specific_gene[[5]])
+specific_f<-as_tibble(specific_gene[[6]])
+specific_g<-as_tibble(specific_gene[[7]])
+specific_h<-as_tibble(specific_gene[[8]])
+specific_i<-as_tibble(specific_gene[[9]])
+specific_j<-as_tibble(specific_gene[[10]])
+```
+
+
+```{r}
+library(maftools)
+tcga<-read.maf(maf="~/Downloads/TCGA.PAAD.somaticsniper.0ca0083b-4c11-47f2-b672-d74911f50b89.DR-10.0.somatic.maf")
+```
+
+```{r}
+tcga_genes<-getGeneSummary(tcga)
+```
+
+
+```{r}
+common_gene<-Reduce(intersect,list(unique(a$Gene_Name),unique(b$Gene_Name),unique(c$Gene_Name),unique(d$Gene_Name),unique(e$Gene_Name),unique(f$Gene_Name),unique(g$Gene_Name),unique(h$Gene_Name),unique(i$Gene_Name),unique(j$Gene_Name)))
+```
+
+```{r}
+# percentage of commonly mutated genes in TCGA-GDC dataset
+mean(tcga_genes$Hugo_Symbol%in%common_gene)
+```
+[ACTBL2](https://www.ncbi.nlm.nih.gov/pubmed/27989943)
+No result for the correlation of TBL3(transducin beta like 3) with cancer
+
+
