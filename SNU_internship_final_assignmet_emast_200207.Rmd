@@ -1,0 +1,150 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(ggplot2)
+library(readxl)
+library(dplyr)
+library(tidyverse)
+```
+
+
+```{r}
+d<-read_excel("~/Downloads/20200128_EMAST.xlsx")
+```
+
+
+```{r}
+d<-d%>%
+  mutate(sample_num=1:96)%>%
+  rename(patient_number=`patient number`)%>%
+  gather("gene_name", "MSI", 2:12)
+```
+
+
+
+```{r}
+d1<-d%>%
+  filter(MSI=="I")
+```
+
+
+
+```{r}
+p1<-d1%>%
+  group_by(gene_name)%>%
+  count()%>%
+  ggplot(aes(gene_name,n, fill=gene_name))+
+  geom_bar(stat = "identity", width=c(0.8))+
+  theme(panel.background = element_rect("white"))+
+  theme(axis.text.x = element_text(size = 10))+
+  theme(axis.text.y = element_text(size = 10))+
+  xlab("Gene name")+
+  ylab("Counts")+
+  theme(text = element_text(size = 12))+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  scale_fill_grey()+
+  labs(fill = "Gene name")+
+  theme(legend.position="none")
+p1
+```
+
+
+```{r}
+d2<-d1%>%
+  group_by(patient_number)%>%
+  count()
+d2<-as_tibble(d2)
+```
+
+```{r}
+library(RColorBrewer)
+```
+
+```{r}
+p2<-d2%>%
+   mutate(patient_number=reorder(patient_number,n))%>%
+  ggplot(aes(patient_number, n))+
+  geom_bar(stat = "identity", width=c(0.8), fill="#333333" , color="#333333")+
+  coord_flip() +
+  theme(axis.text.x = element_text(size = 11))+
+  theme(axis.text.y = element_text(size = 9))+
+  xlab("Patient number")+
+  ylab("Number of mutated genes")+
+  theme(text = element_text(size = 10))+
+  geom_text(aes(label=n), vjust=0.5, color="white", size=3.5, nudge_y = -0.1)+
+  theme(panel.background = element_rect("white"))+
+  theme_minimal()
+p2
+```
+
+```{r}
+d<-d%>%
+  filter(MSI!="-")
+```
+
+
+```{r}
+d3<-d%>%
+  group_by(patient_number)%>%
+  count(MSI)
+d3<-as_tibble(d3)
+```
+
+
+```{r}
+d3<-d3%>%
+  mutate(MSI_status = case_when(MSI=="I"&n>2 ~ "MSI-H",
+                              MSI=="I"&n%in%c(1,2) ~ "MSI-L",
+                              TRUE ~ "MSS"))
+```
+
+```{r}
+d3<-d3[-c(24,35,40,42,44,47,66,76,83,86,88), ]
+d3<-d3%>%
+  group_by(MSI_status)%>%
+  count()
+d3<-as_tibble(d3)
+```
+
+```{r}
+p3<-d3%>%
+  ggplot(aes(MSI_status,n, color=MSI_status))+
+  geom_bar(stat = "identity", fill="white",width=c(0.8))+
+  theme_classic()+
+  scale_color_grey()+
+  geom_text(aes(label=n), vjust=-0.4,col="black",size=4)+
+  xlab("MSI status")+
+  ylab("Counts")+
+  theme(axis.text.x = element_text(size = 10))+
+  theme(axis.text.y = element_text(size = 10))+
+  theme(text = element_text(size = 12))+
+  scale_y_continuous(limits = c(0, 100))+
+  labs(fill = "MSI status")
+p3
+```
+
+
+
+
+```{r}
+library(ggpubr)
+p<-ggarrange(
+  p2,
+  ggarrange(p1, p3, ncol = 2, labels = c("B", "C")), 
+  nrow = 2, 
+  labels = "A"      
+  ) 
+```
+
+```{r}
+p
+```
+
+
+```{r}
+ggsave("SNU_final_assignment_plot_EMAST_20200207.png", p)
+```
+
